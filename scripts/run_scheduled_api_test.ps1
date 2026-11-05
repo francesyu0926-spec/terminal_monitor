@@ -45,9 +45,11 @@ $htmlReport = "reports\full-report-$fileStamp.html"
 $exitCode = 1
 $output = ""
 
+$testScope = "api_tests/testcases"
+
 try {
     $pytestArgs = @(
-        "api_tests/testcases/test_quotes_api.py",
+        $testScope,
         "--tb=short",
         "-ra",
         "--junitxml=$junitPath",
@@ -56,9 +58,9 @@ try {
     )
     if (-not $Full) {
         $pytestArgs = @("-m", $markers) + $pytestArgs
-        Write-Host "[$stamp] pytest -m `"$markers`" ..."
+        Write-Host "[$stamp] pytest -m `"$markers`" $testScope ..."
     } else {
-        Write-Host "[$stamp] 完整测试 ..."
+        Write-Host "[$stamp] 完整测试（全部标记） $testScope ..."
     }
 
     $output = & pytest @pytestArgs 2>&1 | Out-String

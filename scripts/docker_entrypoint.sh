@@ -38,9 +38,9 @@ run_once() {
   junit_path="reports/junit-${file_stamp}.xml"
   html_path="reports/full-report-${file_stamp}.html"
 
-  echo "[$stamp] pytest -m ${MARKERS} ..."
+  echo "[$stamp] pytest -m ${MARKERS} api_tests/testcases ..."
   set +e
-  pytest -m "$MARKERS" api_tests/testcases/test_quotes_api.py \
+  pytest -m "$MARKERS" api_tests/testcases \
     --tb=short -ra \
     --junitxml="$junit_path" \
     --html="$html_path" --self-contained-html \

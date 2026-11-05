@@ -145,7 +145,7 @@ docker compose down
 ## 定时巡检（每 15 分钟 + 企业微信）
 
 1. 在 `.env` 配置 `WEWORK_WEBHOOK_URL`（机器人 Webhook 完整地址）。
-2. 可选：`PYTEST_SCHEDULE_MARKERS=smoke`（默认冒烟，避免 m1 等长用例拖慢周期）。
+2. 可选：`PYTEST_SCHEDULE_MARKERS=smoke`（默认对 **`api_tests/testcases` 下全部文件** 跑冒烟；不含仅 regression 的长用例）。
 3. 手动跑一次：
 
    ```powershell
