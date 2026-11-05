@@ -11,6 +11,8 @@ __pycache__/
 htmlcov/
 .coverage
 reports/
+!reports/scheduled/.gitkeep
+dist/
 allure-results/
 allure-report/
 *.log

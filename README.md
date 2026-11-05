@@ -114,6 +114,52 @@ scripts/           # 本地运行脚本
 
 运行全部行情用例：`pytest api_tests/testcases/test_quotes_api.py -v`
 
+## Docker 部署
+
+前置：已安装 Docker / Docker Compose，项目根目录存在 `.env`（含登录与 `WEWORK_WEBHOOK_URL`）。
+
+```bash
+# 构建并启动定时巡检（每 15 分钟，后台运行）
+docker compose up -d --build api-scheduler
+
+# 查看日志
+docker compose logs -f api-scheduler
+
+# 单次冒烟（不进入循环）
+docker compose --profile once run --rm api-test-once
+
+# 停止
+docker compose down
+```
+
+环境变量（可在 `docker-compose.yml` 或 `.env` 中调整）：
+
+| 变量 | 说明 | 默认 |
+|------|------|------|
+| `SCHEDULE_INTERVAL_SECONDS` | 巡检间隔（秒） | `900` |
+| `PYTEST_SCHEDULE_MARKERS` | pytest 标记 | `smoke` |
+| `RUN_MODE` | `loop` 循环 / `once` 单次 | `loop` |
+
+报告挂载到宿主机 `./reports/scheduled/`。
+
+## 定时巡检（每 15 分钟 + 企业微信）
+
+1. 在 `.env` 配置 `WEWORK_WEBHOOK_URL`（机器人 Webhook 完整地址）。
+2. 可选：`PYTEST_SCHEDULE_MARKERS=smoke`（默认冒烟，避免 m1 等长用例拖慢周期）。
+3. 手动跑一次：
+
+   ```powershell
+   .\scripts\run_scheduled_api_test.ps1
+   ```
+
+4. 注册 Windows 计划任务（**管理员 PowerShell**）：
+
+   ```powershell
+   .\scripts\register_scheduled_task.ps1
+   ```
+
+任务名：`TerminalMonitor-ApiTest-Every15Min`，每 15 分钟执行一次；日志在 `reports/scheduled/`。
+
 ## CI
 
 `.github/workflows/api-tests.yml` 在 push/PR 时运行冒烟用例。在仓库 Variables / Secrets 中配置 `API_BASE_URL`、`API_PREFIX`、`API_TOKEN` 等即可对接真实环境。

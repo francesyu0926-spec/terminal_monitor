@@ -1,0 +1,17 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+.pytest_cache
+.mypy_cache
+.cache
+.hypothesis
+dist
+*.pyc
+*.log
+reports/scheduled/*
+!reports/scheduled/.gitkeep
+.env
+.env.*
+!.env.example

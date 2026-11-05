@@ -1,0 +1,33 @@
+services:
+  api-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: terminal_monitor/api-scheduler:latest
+    container_name: terminal_monitor_api_scheduler
+    env_file:
+      - .env
+    environment:
+      RUN_MODE: loop
+      SCHEDULE_INTERVAL_SECONDS: "900"
+      PYTEST_SCHEDULE_MARKERS: smoke
+      TZ: Asia/Shanghai
+    volumes:
+      - ./reports:/app/reports
+    restart: unless-stopped
+
+  # 单次执行：docker compose --profile once run --rm api-test-once
+  api-test-once:
+    profiles: ["once"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: terminal_monitor/api-scheduler:latest
+    env_file:
+      - .env
+    environment:
+      RUN_MODE: once
+      PYTEST_SCHEDULE_MARKERS: smoke
+      TZ: Asia/Shanghai
+    volumes:
+      - ./reports:/app/reports
