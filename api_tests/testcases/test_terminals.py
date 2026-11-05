@@ -1,3 +1,5 @@
+"""终端 CRUD 脚手架用例：依赖 {API_PREFIX}/terminals，生产 sfccn 未部署，不参与 smoke。"""
+
 import pytest
 
 from api_tests.core.assertions import assert_json_schema
@@ -5,7 +7,6 @@ from api_tests.schemas.terminal import TERMINAL_ITEM_SCHEMA, TERMINAL_LIST_SCHEM
 from api_tests.services.terminal_api import TerminalApi
 
 
-@pytest.mark.smoke
 @pytest.mark.regression
 @pytest.mark.terminal
 def test_list_terminals(terminal_api: TerminalApi) -> None:

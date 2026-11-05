@@ -20,6 +20,8 @@ _ENDPOINT_BY_TEST: dict[str, str] = {
     "test_token_provider_reuses_cached_token": "POST /terminal/zxt-web/login/pwd",
     "test_quotes_api_health": "GET /terminal/quotes/api/health",
     "test_quote_single_symbol": f"POST {_DESK}/quote",
+    "test_line_chart": f"POST {_DESK}/line",
+    "test_line5d_chart": f"POST {_DESK}/line5d",
     "test_catesorting_paged_list": f"POST {_DESK}/catesorting",
     "test_dayk_ohlc_series": f"POST {_DESK}/dayk",
     "test_weekk_ohlc_series": f"POST {_DESK}/weekk",
@@ -35,6 +37,52 @@ _ENDPOINT_BY_TEST: dict[str, str] = {
     "test_desk_procfstatementnew": f"POST {_DESK}/procfstatementnew",
     "test_desk_subnewstockranking": f"POST {_DESK}/subnewstockranking",
     "test_desk_newsharescal": f"POST {_DESK}/newsharescal",
+    "test_info_column": "GET /terminal/rest/info/column",
+    "test_info_page": "GET /terminal/rest/info/infoPage",
+    "test_info_detail": "GET /terminal/rest/info/detail",
+    "test_hot_info": "GET /terminal/rest/hot/info",
+    "test_monitor_scheme_view_list": "GET /terminal/rest/monitor/scheme/view/list",
+    "test_monitor_scheme_view_detail": "GET /terminal/rest/monitor/scheme/view/detail?schemeId=1018653",
+    "test_monitor_group_search": "POST /terminal/rest/monitor/group/search",
+    "test_param_addr": "GET /terminal/rest/param/addr",
+    "test_advertise_classify_list": "GET /terminal/rest/user/advertise/classify/list",
+    "test_advertise_list": "GET /terminal/rest/user/advertise/list",
+    "test_organization_get_content_type": "GET /terminal/rest/organization/getContentType",
+    "test_organization_report_detail": "GET /terminal/rest/organization/reportDetail",
+    "test_es_search_searchkey_page": "GET /terminal/rest/esSearch/searchkey/page",
+    "test_company_notice": "GET /terminal/rest/company/notice",
+    "test_company_notice_detail": "GET /terminal/rest/company/notice/detail",
+    "test_article_flash_list": "GET /terminal/rest/article/flash",
+    "test_article_recent_list": "GET /terminal/rest/article/recent",
+    "test_article_detail": "GET /terminal/rest/article/detail/5/6493133",
+    "test_article_share_system_list": "GET /terminal/rest/article/share/systemList",
+    "test_index_emotion": "GET /terminal/rest/index/emotion",
+    "test_emotion_solution_q": "POST /terminal/rest/emotion/solution/q",
+    "test_emotion_solution_view_list": "GET /terminal/rest/emotion/solution/view/list",
+    "test_index_trend_1": "GET /terminal/rest/index/trend/1",
+    "test_theme_recomend_type2": "GET /terminal/rest/theme/recomend?type=2",
+    "test_theme_recomend_type3": "GET /terminal/rest/theme/recomend?type=3",
+    "test_theme_fund_list": "GET /terminal/rest/theme/fund/list",
+    "test_theme_fund_list_by_theme_id": "GET /terminal/rest/theme/fund/list?themeId=13311271",
+    "test_theme_stock_articles": "GET /terminal/rest/theme/stock/articles",
+    "test_desk_quotes_page_loads": "GET /terminal/desk/quotes/",
+    "test_group_with_stocks_tree": "GET /terminal/quotes/user-stock/group/groupWithStocksTree",
+    "test_banner_list": "GET /terminal/zxt-web/banner/list?position=4",
+    "test_user_view_detail": "GET /terminal/zxt-web/user/view/detail",
+    "test_user_market_guide": "GET /terminal/zxt-web/user/market/guide",
+    "test_user_check_matketing_auth": "GET /terminal/zxt-web/user/checkMatketingAuth",
+    "test_yqt_sso_token": "GET /terminal/zxt-web/yqt/ssoToken",
+    "test_list_terminals": "GET /terminal/zxt-web/terminals",
+    "test_mongo_view_themes": "GET /terminal/zxt-web/mongo/viewThemes",
+    "test_mongo_view_details": "GET /terminal/zxt-web/mongo/viewDetails/{id}",
+    "test_mongo_query": "POST /terminal/zxt-web/mongo/query",
+    "test_laws_type_query": "GET /terminal/zxt-web/pubnote/lawsTypeQuery",
+    "test_laws_query": "GET /terminal/zxt-web/pubnote/lawsQuery",
+    "test_laws_detail": "GET /terminal/zxt-web/pubnote/lawsDetail",
+    "test_meetinginvest_industries": "GET /terminal/zxt-web/meetinginvest/industries",
+    "test_meetinginvest_page": "GET /terminal/zxt-web/meetinginvest/page",
+    "test_overseas_report_realtime_search": "POST /terminal/zxt-web/overseasReport/realtime/search",
+    "test_overseas_report_realtime_read": "GET /terminal/zxt-web/overseasReport/realtime/read",
 }
 
 
@@ -231,6 +279,111 @@ def build_markdown(summary: RunSummary, *, stamp: str) -> str:
     return "\n".join(lines)
 
 
+def _failure_context_text(case: CaseResult) -> str:
+    return f"{case.message}\n{case.detail}"
+
+
+def _human_failure_brief(case: CaseResult) -> list[str]:
+    """面向非技术读者的失败说明（PDF 正文）。"""
+    endpoint = endpoint_label(case.test_name)
+    blob = _failure_context_text(case)
+    lines: list[str] = [f"涉及接口：{endpoint}"]
+
+    if re.search(r"\b404\b|Not Found", blob, re.I):
+        lines.extend(
+            [
+                "现象：服务器提示「接口不存在」(HTTP 404)，当前环境无法访问该地址。",
+                "可能影响：依赖该接口的页面或功能不可用。",
+                "建议处理：请研发/运维确认接口是否已上线、路径是否调整，或监控是否指向了错误环境。",
+            ]
+        )
+        return lines
+
+    if "401" in blob or "未登录" in blob:
+        lines.extend(
+            [
+                "现象：登录状态失效或未通过鉴权 (HTTP 401)。",
+                "建议处理：检查账号密码、Token 是否过期，或联系运维确认登录服务是否正常。",
+            ]
+        )
+        return lines
+
+    if "5002" in blob or "开通权限" in blob:
+        lines.extend(
+            [
+                "现象：账号暂无该功能权限。",
+                "建议处理：在管理后台为测试账号开通对应模块，或监控侧标记为「需权限」跳过。",
+            ]
+        )
+        return lines
+
+    if "应包含非空 content" in blob or ("content" in blob and "AssertionError" in blob):
+        lines.extend(
+            [
+                "现象：接口有返回，但详情里缺少正文/关键内容字段。",
+                "可能影响：前端详情页空白或展示不完整。",
+                "建议处理：请研发检查该条数据发布、同步或入库是否完整。",
+            ]
+        )
+        return lines
+
+    if re.search(r"业务失败\s*code=", blob) or re.search(r"code=\d+", blob):
+        code_m = re.search(r"code[=:]?\s*(\d+)", blob)
+        code_hint = f"（业务码 {code_m.group(1)}）" if code_m else ""
+        lines.extend(
+            [
+                f"现象：接口返回了失败状态{code_hint}，未达到「成功」约定。",
+                "建议处理：请研发根据业务码/错误信息排查服务端逻辑或下游依赖。",
+            ]
+        )
+        return lines
+
+    if "HTTP" in blob and re.search(r"HTTP\s*\d{3}", blob):
+        status_m = re.search(r"HTTP\s*(\d{3})", blob)
+        code = status_m.group(1) if status_m else "异常"
+        lines.extend(
+            [
+                f"现象：HTTP 状态异常 ({code})，请求未按预期完成。",
+                "建议处理：请研发查看网关、服务日志及该时间段是否有发布/故障。",
+            ]
+        )
+        return lines
+
+    headline = _error_headline(case)
+    lines.append("现象：自动化校验未通过，接口行为与预期不一致。")
+    if headline and len(headline) <= 180:
+        lines.append(f"补充说明：{headline}")
+    lines.append("建议处理：请将本报告（含发生时间）转交研发进一步排查。")
+    return lines
+
+
+def _tech_detail_lines(case: CaseResult, *, max_lines: int = 10) -> list[str]:
+    """精简技术明细，供研发对照（PDF 附录）。"""
+    skip_fragments = (
+        "site-packages",
+        "venv\\",
+        "venv/",
+        "_pytest",
+        "pluggy",
+        "pytest",
+    )
+    picked: list[str] = []
+    for raw in case.detail.replace("\r", "").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if any(frag in line for frag in skip_fragments):
+            continue
+        if line.startswith("E   "):
+            line = line[4:].strip()
+        picked.append(line)
+        if len(picked) >= max_lines:
+            break
+    if not picked and case.message.strip():
+        picked.append(re.sub(r"\s+", " ", case.message.replace("\n", " ")).strip())
+    return picked
+
+
 def _error_headline(case: CaseResult) -> str:
     if case.message:
         one = re.sub(r"\s+", " ", case.message.replace("\r", "")).strip()
@@ -261,7 +414,7 @@ def _error_body_lines(case: CaseResult) -> list[str]:
         cleaned.append(line)
     while cleaned and cleaned[-1] == "":
         cleaned.pop()
-    return cleaned[:80]
+    return cleaned[:120]
 
 
 def _pick_font() -> Path | None:
@@ -285,8 +438,15 @@ def _pdf_set_font(pdf, font_path: Path | None, size: int) -> None:
 
 
 def _pdf_write(pdf, text: str, *, font_path: Path | None, size: int, line_h: float) -> None:
+    from fpdf.enums import XPos, YPos
+
     _pdf_set_font(pdf, font_path, size)
-    pdf.multi_cell(0, line_h, text)
+    pdf.set_x(pdf.l_margin)
+    content = (text or "").replace("\r", "")
+    if not content.strip():
+        content = " "
+    # fpdf2：multi_cell(w=0) 结束后 x 会停在右缘，下一行可用宽度为 0
+    pdf.multi_cell(pdf.epw, line_h, content, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 def generate_pdf(
@@ -336,28 +496,37 @@ def generate_pdf(
             line_h=7,
         )
     else:
+        _pdf_write(
+            pdf,
+            "以下为失败项说明（面向业务/运维阅读；文末附简短技术摘要供研发参考）。",
+            font_path=font_path,
+            size=10,
+            line_h=6,
+        )
+        pdf.ln(2)
         for index, case in enumerate(failures, start=1):
             pdf.ln(2)
             _pdf_write(
                 pdf,
-                f"{index}. {endpoint_label(case.test_name)}",
+                f"【失败项 {index}】",
                 font_path=font_path,
-                size=11,
+                size=12,
                 line_h=7,
             )
-            _pdf_write(pdf, case.nodeid, font_path=font_path, size=11, line_h=7)
-            _pdf_write(
-                pdf,
-                _error_headline(case),
-                font_path=font_path,
-                size=11,
-                line_h=7,
-            )
-            for line in _error_body_lines(case):
-                if line == "":
-                    pdf.ln(3)
-                    continue
+            for line in _human_failure_brief(case):
                 _pdf_write(pdf, line, font_path=font_path, size=10, line_h=6)
+            tech_lines = _tech_detail_lines(case)
+            if tech_lines:
+                pdf.ln(1)
+                _pdf_write(
+                    pdf,
+                    "技术摘要（研发参考）：",
+                    font_path=font_path,
+                    size=9,
+                    line_h=5.5,
+                )
+                for line in tech_lines:
+                    _pdf_write(pdf, f"· {line}", font_path=font_path, size=8, line_h=5)
 
     pdf.output(str(pdf_path))
 
@@ -386,22 +555,28 @@ def main() -> int:
     markdown = build_markdown(summary, stamp=args.stamp)
 
     pdf_path: Path | None = None
+    pdf_error: str | None = None
     if not summary.ok:
         pdf_path = args.pdf_out
         if pdf_path is None:
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             pdf_path = args.junit.parent / f"wecom_failure_{ts}.pdf"
         pdf_path.parent.mkdir(parents=True, exist_ok=True)
-        generate_pdf(
-            summary,
-            stamp=args.stamp,
-            pdf_path=pdf_path,
-            html_report=args.html,
-            log_path=args.log,
-        )
+        try:
+            generate_pdf(
+                summary,
+                stamp=args.stamp,
+                pdf_path=pdf_path,
+                html_report=args.html,
+                log_path=args.log,
+            )
+        except Exception as exc:  # noqa: BLE001
+            pdf_error = str(exc)
+            pdf_path = None
+            print(f"PDF 生成失败: {exc}", file=sys.stderr)
 
     try:
-        if pdf_path is not None:
+        if pdf_path is not None and pdf_path.is_file():
             media_id = upload_file(args.webhook, pdf_path, verify_ssl=verify_ssl)
             send_file_message(args.webhook, media_id, verify_ssl=verify_ssl)
         send_markdown(args.webhook, markdown, verify_ssl=verify_ssl)
@@ -411,9 +586,11 @@ def main() -> int:
 
     if pdf_path is not None:
         print(f"已推送 Markdown + PDF: {pdf_path}")
+    elif pdf_error:
+        print("已推送 Markdown（PDF 生成失败，见 stderr）", file=sys.stderr)
     else:
         print("已推送 Markdown（通过，未发送 PDF）")
-    return 0
+    return 1 if pdf_error else 0
 
 
 if __name__ == "__main__":

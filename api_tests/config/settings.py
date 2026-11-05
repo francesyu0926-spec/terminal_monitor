@@ -30,6 +30,9 @@ class Settings:
     auth_header_names: tuple[str, ...]
     quotes_api_base: str
     quotes_health_api_base: str
+    quotes_user_stock_base: str
+    rest_api_base: str
+    desk_quotes_page_url: str
     verify_ssl: bool
 
     @property
@@ -83,6 +86,18 @@ settings = Settings(
     quotes_health_api_base=_env(
         "QUOTES_HEALTH_API_BASE",
         "https://terminal.sfccn.com/terminal/quotes/api",
+    ),
+    quotes_user_stock_base=_env(
+        "QUOTES_USER_STOCK_BASE",
+        "https://terminal.sfccn.com/terminal/quotes",
+    ),
+    rest_api_base=_env(
+        "REST_API_BASE",
+        "https://terminal.sfccn.com/terminal/rest",
+    ),
+    desk_quotes_page_url=_env(
+        "DESK_QUOTES_PAGE_URL",
+        "https://terminal.sfccn.com/terminal/desk/quotes/",
     ),
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )

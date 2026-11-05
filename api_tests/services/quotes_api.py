@@ -30,6 +30,12 @@ class QuotesApi:
     def catesorting(self, payload: dict[str, Any]) -> httpx.Response:
         return self._client.post("/catesorting", json=payload)
 
+    def line(self, payload: dict[str, Any]) -> httpx.Response:
+        return self._client.post("/line", json=payload)
+
+    def line5d(self, payload: dict[str, Any]) -> httpx.Response:
+        return self._client.post("/line5d", json=payload)
+
     def dayk(self, payload: dict[str, Any]) -> httpx.Response:
         return self._client.post("/dayk", json=payload)
 

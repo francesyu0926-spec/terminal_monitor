@@ -1,4 +1,4 @@
-﻿# 生成部署包（含 .env 密钥，仅用于离线部署，勿提交 Git）
+# 生成部署包（含 .env 密钥，仅用于离线部署，勿提交 Git）
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
@@ -39,6 +39,9 @@ if (Test-Path (Join-Path $Root ".env")) {
 } else {
     Write-Warning "未找到 .env，部署包中无密钥文件，请在目标机器配置 .env"
 }
+
+Get-ChildItem -Path $stageDir -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
 New-Item -ItemType Directory -Force -Path (Join-Path $stageDir "reports\scheduled") | Out-Null
 

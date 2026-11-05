@@ -54,6 +54,7 @@ class ApiClient:
         *,
         params: Mapping[str, Any] | None = None,
         json: Any | None = None,
+        data: Any | None = None,
         headers: Mapping[str, str] | None = None,
         retry_on_unauthorized: bool = True,
     ) -> httpx.Response:
@@ -62,7 +63,9 @@ class ApiClient:
         if headers:
             merged.update(headers)
 
-        resp = self._client.request(method, url, params=params, json=json, headers=merged)
+        resp = self._client.request(
+            method, url, params=params, json=json, data=data, headers=merged
+        )
         if (
             retry_on_unauthorized
             and response_indicates_unauthorized(resp)
@@ -71,7 +74,9 @@ class ApiClient:
         ):
             self._token_provider.invalidate()
             merged.update(self._auth_headers())
-            resp = self._client.request(method, url, params=params, json=json, headers=merged)
+            resp = self._client.request(
+                method, url, params=params, json=json, data=data, headers=merged
+            )
         return resp
 
     def get(self, url: str, **kwargs: Any) -> httpx.Response:

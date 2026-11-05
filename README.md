@@ -158,7 +158,7 @@ docker compose down
    .\scripts\register_scheduled_task.ps1
    ```
 
-任务名：`TerminalMonitor-ApiTest-Every15Min`，每 15 分钟执行一次；日志在 `reports/scheduled/`。
+任务名：`TerminalMonitor-ApiTest-Every15Min`。**按时钟整点**每 15 分钟触发（:00 / :15 / :30 / :45），不是从注册或部署时刻起算；日志在 `reports/scheduled/`。已注册过旧任务请重新执行 `register_scheduled_task.ps1`。
 
 ## CI
 

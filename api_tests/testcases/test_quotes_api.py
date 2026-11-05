@@ -12,6 +12,7 @@ from api_tests.core.assertions import assert_json_schema
 from api_tests.core.response import (
     assert_dayk_success,
     assert_desk_status_success,
+    assert_line_chart_success,
     assert_sector_multiple_sort_success,
     assert_ohlc_success,
     assert_quote_success,
@@ -31,6 +32,7 @@ from api_tests.schemas.sector_multiple_sort import SECTOR_MULTIPLE_SORT_RESPONSE
 from api_tests.schemas.newsharescal import NEWSHARESCAL_RESPONSE_SCHEMA
 from api_tests.schemas.subnewstockranking import SUBNEWSTOCKRANKING_RESPONSE_SCHEMA
 from api_tests.schemas.dayk import DAYK_RESPONSE_SCHEMA, OHLC_ITEM_SCHEMA
+from api_tests.schemas.line5d import LINE5D_RESPONSE_SCHEMA
 from api_tests.schemas.quote import QUOTE_ITEMS_LIST_SCHEMA, QUOTE_RESPONSE_SCHEMA
 from api_tests.services.quotes_api import BAR_INTERVALS, BarInterval, QuotesApi
 
@@ -100,6 +102,27 @@ def test_catesorting_paged_list(quotes_api: QuotesApi, catesorting_request_paylo
 
     for field in ("code", "name", "spe"):
         assert field in items[0], f"quoteItems[0] 缺少字段 {field}"
+
+
+# --- POST /line、/line5d ---
+
+
+@pytest.mark.smoke
+@pytest.mark.regression
+@pytest.mark.quote
+def test_line_chart(quotes_api: QuotesApi, line5d_request_payload: dict) -> None:
+    resp = quotes_api.line(line5d_request_payload)
+    body = assert_line_chart_success(parse_json_response(resp))
+    assert_json_schema(body, LINE5D_RESPONSE_SCHEMA)
+
+
+@pytest.mark.smoke
+@pytest.mark.regression
+@pytest.mark.quote
+def test_line5d_chart(quotes_api: QuotesApi, line5d_request_payload: dict) -> None:
+    resp = quotes_api.line5d(line5d_request_payload)
+    body = assert_line_chart_success(parse_json_response(resp))
+    assert_json_schema(body, LINE5D_RESPONSE_SCHEMA)
 
 
 # --- POST /dayk ---

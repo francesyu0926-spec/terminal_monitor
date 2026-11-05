@@ -13,7 +13,10 @@ from api_tests.auth.token_provider import TokenProvider
 from api_tests.config.settings import settings
 from api_tests.core.http_client import ApiClient
 from api_tests.services.quotes_api import QuotesApi
+from api_tests.services.rest_api import RestApi
 from api_tests.services.terminal_api import TerminalApi
+from api_tests.services.user_stock_api import UserStockApi
+from api_tests.services.zxt_web_api import ZxtWebApi
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -36,6 +39,23 @@ def terminal_api(api_client: ApiClient) -> TerminalApi:
 
 
 @pytest.fixture(scope="session")
+def zxt_web_api(api_client: ApiClient) -> ZxtWebApi:
+    return ZxtWebApi(api_client)
+
+
+@pytest.fixture(scope="session")
+def user_stock_client(token_provider: TokenProvider) -> Generator[ApiClient, None, None]:
+    client = ApiClient(base_url=settings.quotes_user_stock_base, token_provider=token_provider)
+    yield client
+    client.close()
+
+
+@pytest.fixture(scope="session")
+def user_stock_api(user_stock_client: ApiClient) -> UserStockApi:
+    return UserStockApi(user_stock_client)
+
+
+@pytest.fixture(scope="session")
 def quotes_client(token_provider: TokenProvider) -> Generator[ApiClient, None, None]:
     client = ApiClient(base_url=settings.quotes_api_base, token_provider=token_provider)
     yield client
@@ -45,6 +65,24 @@ def quotes_client(token_provider: TokenProvider) -> Generator[ApiClient, None, N
 @pytest.fixture(scope="session")
 def quotes_api(quotes_client: ApiClient) -> QuotesApi:
     return QuotesApi(quotes_client)
+
+
+@pytest.fixture(scope="session")
+def rest_client(token_provider: TokenProvider) -> Generator[ApiClient, None, None]:
+    client = ApiClient(
+        base_url=settings.rest_api_base,
+        token_provider=token_provider,
+        headers={"Accept": "*/*"},
+    )
+    if "Content-Type" in client._client.headers:
+        del client._client.headers["Content-Type"]
+    yield client
+    client.close()
+
+
+@pytest.fixture(scope="session")
+def rest_api(rest_client: ApiClient) -> RestApi:
+    return RestApi(rest_client)
 
 
 @pytest.fixture
@@ -60,6 +98,11 @@ def catesorting_request_payload() -> dict[str, Any]:
 @pytest.fixture
 def dayk_request_payload() -> dict[str, Any]:
     return load_json("dayk_request.json")
+
+
+@pytest.fixture
+def line5d_request_payload() -> dict[str, Any]:
+    return load_json("line5d_request.json")
 
 
 @pytest.fixture
