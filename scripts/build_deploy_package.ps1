@@ -45,26 +45,30 @@ New-Item -ItemType Directory -Force -Path (Join-Path $stageDir "reports\schedule
 $deployReadme = @"
 # terminal_monitor 部署包
 
-## 环境要求
-- Windows 10+
-- Python 3.11+
+含 **.env 密钥文件**，仅供内网/离线部署，勿上传公开仓库。
 
-## 首次部署
+## 方式一：Docker（推荐）
+
+``````bash
+docker compose up -d --build api-scheduler
+docker compose logs -f api-scheduler
+# 单次：docker compose --profile once run --rm api-test-once
+``````
+
+## 方式二：Windows 本机 + 计划任务
+
 ``````powershell
-cd terminal_monitor_deploy
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 .\scripts\run_scheduled_api_test.ps1
+# 管理员：.\scripts\register_scheduled_task.ps1
 ``````
 
-## 注册每 15 分钟定时任务（管理员）
-``````powershell
-.\scripts\register_scheduled_task.ps1
-``````
-
-## 敏感文件
-- 本包含 `.env`（登录账号、Webhook 等），请加密存储、勿外传。
+## 包内文件
+- api_tests / scripts / pytest.ini / requirements.txt
+- Dockerfile / docker-compose.yml
+- .env（登录、Webhook、QUOTES_API_BASE 等）
 "@
 Set-Content -Path (Join-Path $stageDir "DEPLOY.md") -Value $deployReadme -Encoding UTF8
 
@@ -72,7 +76,11 @@ if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path (Join-Path $stageDir "*") -DestinationPath $zipPath -Force
 Remove-Item $stageDir -Recurse -Force
 
+$latestZip = Join-Path $outDir "terminal_monitor_deploy_latest.zip"
+Copy-Item $zipPath $latestZip -Force
+
 Write-Host ""
 Write-Host "部署包已生成:"
 Write-Host "  $zipPath"
+Write-Host "  $latestZip"
 Write-Host ("大小: {0:N2} MB" -f ((Get-Item $zipPath).Length / 1MB))
