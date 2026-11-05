@@ -1,0 +1,3 @@
+from api_tests.schemas.terminal import TERMINAL_ITEM_SCHEMA, TERMINAL_LIST_SCHEMA
+
+__all__ = ["TERMINAL_ITEM_SCHEMA", "TERMINAL_LIST_SCHEMA"]

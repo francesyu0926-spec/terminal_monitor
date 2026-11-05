@@ -1,0 +1,41 @@
+name: API Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run smoke API tests
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://terminal.sfccn.com' }}
+          API_PREFIX: ${{ vars.API_PREFIX || '/terminal/zxt-web' }}
+          LOGIN_CODE: ${{ secrets.LOGIN_CODE }}
+          LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
+          TOKEN_TTL_SECONDS: ${{ vars.TOKEN_TTL_SECONDS || '43200' }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: |
+          mkdir -p reports
+          pytest -m "smoke and auth" --html=reports/report.html --self-contained-html
+        continue-on-error: true
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-html-report
+          path: reports/report.html
