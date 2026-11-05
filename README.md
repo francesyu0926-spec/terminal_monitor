@@ -58,10 +58,11 @@ scripts/           # 本地运行脚本
 | `AUTH_HEADERS` | 鉴权头列表（逗号分隔） | `Secret,Token` |
 | `TOKEN_HEADER` | 单头模式（未设 AUTH_HEADERS 时） | 空 |
 | `TOKEN_PREFIX` | token 前缀（如 `Bearer `） | 空 |
-| `QUOTES_API_BASE` | 行情 API 根路径 | `https://terminal.sfccn.com/terminal/quotes/api` |
+| `QUOTES_API_BASE` | 行情业务 API 根路径（desk） | `https://terminal.sfccn.com/terminal/desk/quotes/api` |
+| `QUOTES_HEALTH_API_BASE` | 行情 health 旧路径根 | `https://terminal.sfccn.com/terminal/quotes/api` |
 | `API_TIMEOUT` | 超时（秒） | `30` |
 | `API_TOKEN` | 静态 token（可选，跳过登录） | 空 |
-| `HEALTH_PATH` | 健康检查路径（可选） | 空 |
+| `HEALTH_PATH` | 其它服务健康检查（可选） | 空 |
 
 ## 鉴权说明
 
@@ -91,12 +92,25 @@ scripts/           # 本地运行脚本
 | 接口 | 测试函数 | 请求数据 |
 |------|----------|----------|
 | 登录 / Token | `test_login_*` | `.env` |
+| `GET .../quotes/api/health` | `test_quotes_api_health` | `QUOTES_HEALTH_API_BASE` |
 | `POST /quote` | `test_quote_single_symbol` | `data/quote_request.json` |
 | `POST /catesorting` | `test_catesorting_paged_list` | `data/catesorting_request.json` |
 | `POST /dayk` | `test_dayk_ohlc_series` | `data/dayk_request.json` |
 | `POST /weekk` | `test_weekk_ohlc_series` | `data/weekk_request.json` |
 | `POST /monthk` | `test_monthk_ohlc_series` | `data/monthk_request.json` |
 | `POST /yeark` | `test_yeark_ohlc_series` | `data/yeark_request.json` |
+| `POST /m1~m120` | `test_desk_intraday_ohlc_series`（参数化 6 个周期） | `data/desk_intraday_request.json` |
+| `POST /astocksquote` | `test_desk_astocksquote` | `data/astocksquote_request.json`（空对象） |
+| `POST /sectorMultipleSort` | `test_desk_sector_multiple_sort` | `data/sector_multiple_sort_request.json` |
+| `POST /importantindex` | `test_desk_importantindex` | `data/importantindex_request.json` |
+| `POST /profinmainindex` | `test_desk_profinmainindex` | `data/profinmainindex_request.json` |
+| `POST /proincstatementnew` | `test_desk_proincstatementnew` | `data/proincstatementnew_request.json` |
+| `POST /probalsheetnew` | `test_desk_probalsheetnew` | `data/probalsheetnew_request.json` |
+| `POST /procfstatementnew` | `test_desk_procfstatementnew` | `data/procfstatementnew_request.json` |
+| `POST /subnewstockranking` | `test_desk_subnewstockranking` | `data/subnewstockranking_request.json` |
+| `POST /newsharescal` | `test_desk_newsharescal` | `data/newsharescal_request.json` |
+
+以上 POST 接口均基于 **`QUOTES_API_BASE`**（默认 `/terminal/desk/quotes/api`）。
 
 运行全部行情用例：`pytest api_tests/testcases/test_quotes_api.py -v`
 

@@ -77,6 +77,56 @@ def yeark_request_payload() -> dict[str, Any]:
     return load_json("yeark_request.json")
 
 
+@pytest.fixture
+def desk_intraday_request_payload() -> dict[str, Any]:
+    return load_json("desk_intraday_request.json")
+
+
+@pytest.fixture
+def astocksquote_request_payload() -> dict[str, Any]:
+    return load_json("astocksquote_request.json")
+
+
+@pytest.fixture
+def sector_multiple_sort_request_payload() -> dict[str, Any]:
+    return load_json("sector_multiple_sort_request.json")
+
+
+@pytest.fixture
+def importantindex_request_payload() -> dict[str, Any]:
+    return load_json("importantindex_request.json")
+
+
+@pytest.fixture
+def profinmainindex_request_payload() -> dict[str, Any]:
+    return load_json("profinmainindex_request.json")
+
+
+@pytest.fixture
+def proincstatementnew_request_payload() -> dict[str, Any]:
+    return load_json("proincstatementnew_request.json")
+
+
+@pytest.fixture
+def probalsheetnew_request_payload() -> dict[str, Any]:
+    return load_json("probalsheetnew_request.json")
+
+
+@pytest.fixture
+def procfstatementnew_request_payload() -> dict[str, Any]:
+    return load_json("procfstatementnew_request.json")
+
+
+@pytest.fixture
+def subnewstockranking_request_payload() -> dict[str, Any]:
+    return load_json("subnewstockranking_request.json")
+
+
+@pytest.fixture
+def newsharescal_request_payload() -> dict[str, Any]:
+    return load_json("newsharescal_request.json")
+
+
 @pytest.fixture(scope="session")
 def auth_token(token_provider: TokenProvider) -> str:
     try:

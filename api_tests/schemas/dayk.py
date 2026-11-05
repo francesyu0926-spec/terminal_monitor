@@ -3,6 +3,7 @@ OHLC_ITEM_SCHEMA: dict = {
     "required": ["date", "openPrice", "highPrice", "lowPrice", "closePrice"],
     "properties": {
         "date": {"type": "string"},
+        "time": {"type": "string"},
         "openPrice": {"type": "number"},
         "highPrice": {"type": "number"},
         "lowPrice": {"type": "number"},

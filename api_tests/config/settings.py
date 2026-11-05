@@ -29,7 +29,13 @@ class Settings:
     token_prefix: str
     auth_header_names: tuple[str, ...]
     quotes_api_base: str
+    quotes_health_api_base: str
     verify_ssl: bool
+
+    @property
+    def quotes_health_url(self) -> str:
+        base = self.quotes_health_api_base.rstrip("/")
+        return f"{base}/health"
 
     @property
     def api_root(self) -> str:
@@ -70,6 +76,13 @@ settings = Settings(
     token_header=_env("TOKEN_HEADER", ""),
     token_prefix=_env("TOKEN_PREFIX", ""),
     auth_header_names=_parse_auth_header_names(),
-    quotes_api_base=_env("QUOTES_API_BASE", "https://terminal.sfccn.com/terminal/quotes/api"),
+    quotes_api_base=_env(
+        "QUOTES_API_BASE",
+        "https://terminal.sfccn.com/terminal/desk/quotes/api",
+    ),
+    quotes_health_api_base=_env(
+        "QUOTES_HEALTH_API_BASE",
+        "https://terminal.sfccn.com/terminal/quotes/api",
+    ),
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )

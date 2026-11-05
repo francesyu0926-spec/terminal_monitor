@@ -1,0 +1,70 @@
+{
+  "pageIndex": 0,
+  "pageSize": 10,
+  "sectors": [
+    {
+      "identifier": "涨速榜",
+      "code": "9E341731AEDFB798E050A8C05B01C2B2",
+      "field": 114,
+      "ascending": false,
+      "fields": [
+        "code",
+        "name",
+        "amount",
+        "turnoverRate",
+        "threeMinRise",
+        "lastPrice",
+        "preClosePrice",
+        "fiveMinRise"
+      ]
+    },
+    {
+      "identifier": "换手率榜",
+      "code": "9E341731AEDFB798E050A8C05B01C2B2",
+      "field": 15,
+      "ascending": false,
+      "fields": [
+        "code",
+        "name",
+        "amount",
+        "turnoverRate",
+        "threeMinRise",
+        "lastPrice",
+        "preClosePrice",
+        "fiveMinRise"
+      ]
+    },
+    {
+      "identifier": "跌速榜",
+      "code": "9E341731AEDFB798E050A8C05B01C2B2",
+      "field": 114,
+      "ascending": true,
+      "fields": [
+        "code",
+        "name",
+        "amount",
+        "turnoverRate",
+        "threeMinRise",
+        "lastPrice",
+        "preClosePrice",
+        "fiveMinRise"
+      ]
+    },
+    {
+      "identifier": "总金额榜",
+      "code": "9E341731AEDFB798E050A8C05B01C2B2",
+      "field": 20,
+      "ascending": false,
+      "fields": [
+        "code",
+        "name",
+        "amount",
+        "turnoverRate",
+        "threeMinRise",
+        "lastPrice",
+        "preClosePrice",
+        "fiveMinRise"
+      ]
+    }
+  ]
+}
