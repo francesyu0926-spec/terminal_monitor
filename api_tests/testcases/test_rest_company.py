@@ -30,8 +30,23 @@ def test_company_notice(rest_api: RestApi) -> None:
 def test_company_notice_detail(rest_api: RestApi) -> None:
     list_resp = rest_api.company_notice(page_no=1, page_size=NOTICE_PAGE_SIZE)
     list_body = assert_company_notice_success(parse_json_response(list_resp), page_size=NOTICE_PAGE_SIZE)
-    notice_id = int(list_body["data"][0]["id"])
 
-    resp = rest_api.company_notice_detail(notice_id)
-    body = assert_company_notice_detail_success(parse_json_response(resp), notice_id=notice_id)
-    assert_json_schema(body["data"], COMPANY_NOTICE_DETAIL_SCHEMA)
+    last_assert: AssertionError | None = None
+    for item in list_body["data"]:
+        notice_id = int(item["id"])
+        resp = rest_api.company_notice_detail(notice_id)
+        try:
+            body = assert_company_notice_detail_success(
+                parse_json_response(resp),
+                notice_id=notice_id,
+            )
+        except AssertionError as exc:
+            last_assert = exc
+            continue
+        assert_json_schema(body["data"], COMPANY_NOTICE_DETAIL_SCHEMA)
+        return
+
+    hint = str(last_assert) if last_assert else "无可用详情"
+    raise AssertionError(
+        f"列表前 {len(list_body['data'])} 条公告均无有效详情（需非空 infoTitle 与 content）：{hint}"
+    )

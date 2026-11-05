@@ -248,7 +248,12 @@ def parse_junit(junit_path: Path) -> RunSummary:
     return RunSummary(total, passed, failed, errors, skipped, cases)
 
 
-def build_markdown(summary: RunSummary, *, stamp: str) -> str:
+def build_markdown(
+    summary: RunSummary,
+    *,
+    stamp: str,
+    pdf_status: str | None = None,
+) -> str:
     if summary.ok:
         verdict = '<font color="info">通过</font>'
     else:
@@ -275,7 +280,14 @@ def build_markdown(summary: RunSummary, *, stamp: str) -> str:
             lines.append(f"> - `{ep}`")
 
     if not summary.ok:
-        lines.append("> 详细报告 PDF 已推送（本地副本见 reports/ 目录）")
+        if pdf_status == "pushed":
+            lines.append("> 详细报告 PDF 已推送（本地副本见 reports/ 目录）")
+        elif pdf_status == "gen_failed":
+            lines.append("> 详细 PDF 未推送：生成失败，请查看 reports/ 下 HTML/JUnit 与 scheduled 日志")
+        elif pdf_status == "upload_failed":
+            lines.append("> 详细 PDF 未推送：企微上传失败，请查看服务器 reports/ 目录本地副本")
+        else:
+            lines.append("> 详细 PDF 未推送，请查看 reports/ 目录")
     return "\n".join(lines)
 
 
@@ -423,6 +435,8 @@ def _pick_font() -> Path | None:
         Path(r"C:\Windows\Fonts\msyhbd.ttc"),
         Path(r"C:\Windows\Fonts\simhei.ttf"),
         Path("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"),
+        Path("/usr/share/fonts/wqy-zenhei/wqy-zenhei.ttc"),
+        Path("/usr/share/fonts/noto/NotoSansCJK-Regular.ttc"),
     ]
     for path in candidates:
         if path.exists():
@@ -552,7 +566,6 @@ def main() -> int:
         return 1
 
     summary = parse_junit(args.junit)
-    markdown = build_markdown(summary, stamp=args.stamp)
 
     pdf_path: Path | None = None
     pdf_error: str | None = None
@@ -575,22 +588,42 @@ def main() -> int:
             pdf_path = None
             print(f"PDF 生成失败: {exc}", file=sys.stderr)
 
-    try:
-        if pdf_path is not None and pdf_path.is_file():
+    pdf_uploaded = False
+    pdf_upload_error: str | None = None
+    if pdf_path is not None and pdf_path.is_file():
+        try:
             media_id = upload_file(args.webhook, pdf_path, verify_ssl=verify_ssl)
             send_file_message(args.webhook, media_id, verify_ssl=verify_ssl)
+            pdf_uploaded = True
+        except Exception as exc:  # noqa: BLE001
+            pdf_upload_error = str(exc)
+            print(f"企业微信 PDF 推送失败: {exc}", file=sys.stderr)
+
+    if pdf_uploaded:
+        pdf_status = "pushed"
+    elif pdf_error:
+        pdf_status = "gen_failed"
+    elif pdf_upload_error:
+        pdf_status = "upload_failed"
+    elif not summary.ok:
+        pdf_status = "missing"
+    else:
+        pdf_status = None
+
+    markdown = build_markdown(summary, stamp=args.stamp, pdf_status=pdf_status)
+    try:
         send_markdown(args.webhook, markdown, verify_ssl=verify_ssl)
     except Exception as exc:  # noqa: BLE001
-        print(f"企业微信推送失败: {exc}", file=sys.stderr)
+        print(f"企业微信 Markdown 推送失败: {exc}", file=sys.stderr)
         return 1
 
-    if pdf_path is not None:
+    if pdf_uploaded:
         print(f"已推送 Markdown + PDF: {pdf_path}")
-    elif pdf_error:
-        print("已推送 Markdown（PDF 生成失败，见 stderr）", file=sys.stderr)
+    elif not summary.ok:
+        print("已推送 Markdown（失败场景 PDF 未成功推送，见 stderr）", file=sys.stderr)
     else:
         print("已推送 Markdown（通过，未发送 PDF）")
-    return 1 if pdf_error else 0
+    return 1 if (pdf_error or pdf_upload_error or (not summary.ok and not pdf_uploaded)) else 0
 
 
 if __name__ == "__main__":

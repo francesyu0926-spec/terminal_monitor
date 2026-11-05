@@ -8,9 +8,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN apk add --no-cache tzdata ca-certificates \
+RUN apk add --no-cache tzdata ca-certificates font-wqy-zenhei \
     && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo "${TZ}" > /etc/timezone
+    && echo "${TZ}" > /etc/timezone \
+    && fc-cache -f
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
