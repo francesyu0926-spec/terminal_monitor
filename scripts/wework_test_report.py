@@ -66,6 +66,8 @@ _ENDPOINT_BY_TEST: dict[str, str] = {
     "test_theme_fund_list_by_theme_id": "GET /terminal/rest/theme/fund/list?themeId=13311271",
     "test_theme_stock_articles": "GET /terminal/rest/theme/stock/articles",
     "test_desk_quotes_page_loads": "GET /terminal/desk/quotes/",
+    "test_zxt_desktop_news_detail_page_loads": "GET https://zxt.sfccn.com/desktop/news/details/1021804",
+    "test_zxt_desktop_theme_index_page_loads": "GET https://zxt.sfccn.com/desktop/theme/index",
     "test_group_with_stocks_tree": "GET /terminal/quotes/user-stock/group/groupWithStocksTree",
     "test_banner_list": "GET /terminal/zxt-web/banner/list?position=4",
     "test_user_view_detail": "GET /terminal/zxt-web/user/view/detail",
@@ -275,9 +277,9 @@ def build_markdown(
             failed_endpoints.append(endpoint_label(case.test_name))
 
     if failed_endpoints:
-        lines.append("> 失败接口：")
+        lines.append("> 失败接口路径：")
         for ep in dict.fromkeys(failed_endpoints):
-            lines.append(f"> - `{ep}`")
+            lines.append(f"> - 接口路径：`{ep}`")
 
     if not summary.ok:
         if pdf_status == "pushed":
@@ -295,105 +297,85 @@ def _failure_context_text(case: CaseResult) -> str:
     return f"{case.message}\n{case.detail}"
 
 
-def _human_failure_brief(case: CaseResult) -> list[str]:
-    """面向非技术读者的失败说明（PDF 正文）。"""
-    endpoint = endpoint_label(case.test_name)
+def _trim_business_msg(raw: str) -> str:
+    text = raw.strip().strip("'").strip('"').strip()
+    return text[:400] if text else "（空）"
+
+
+def _extract_business_response(case: CaseResult) -> tuple[str | None, str | None]:
+    """从 JUnit 失败信息中解析接口 JSON 业务码与 msg/message（仅 PDF 使用）。"""
     blob = _failure_context_text(case)
-    lines: list[str] = [f"涉及接口：{endpoint}"]
+    flat = re.sub(r"\s+", " ", blob)
+
+    structured_patterns = (
+        r"业务失败\s*code=([^\s]+)\s*msg=(.+?)(?=AssertionError|assert|$)",
+        r"未登录\s*code=([^\s]+)\s*msg=(.+?)(?=AssertionError|assert|$)",
+        r"登录业务失败:\s*code=([^\s]+)\s*msg=(.+?)(?=\||$)",
+        r"业务失败\s*status=([^\s]+)\s*message=(.+?)(?=AssertionError|assert|$)",
+        r"接口\s*code=([^\s]+)\s*msg=([^)）]+)",
+    )
+    for pat in structured_patterns:
+        m = re.search(pat, flat, re.I)
+        if m:
+            return m.group(1).strip(), _trim_business_msg(m.group(2))
+
+    json_patterns = (
+        r"""['"]code['"]\s*:\s*([^,}\]]+).*?['"]msg['"]\s*:\s*['"]([^'"]*)['"]""",
+        r"""['"]code['"]\s*:\s*([^,}\]]+).*?['"]message['"]\s*:\s*['"]([^'"]*)['"]""",
+    )
+    for pat in json_patterns:
+        m = re.search(pat, blob, re.S | re.I)
+        if m:
+            code = m.group(1).strip()
+            if code.lower() in ("null", "none"):
+                continue
+            return code, _trim_business_msg(m.group(2))
+
+    return None, None
+
+
+def _pdf_business_response_lines(case: CaseResult) -> list[str]:
+    code, msg = _extract_business_response(case)
+    if code is None and msg is None:
+        return ["业务码：—", "返回信息：—"]
+    return [
+        f"业务码：{code if code is not None else '—'}",
+        f"返回信息：{msg if msg is not None else '—'}",
+    ]
+
+
+def _pdf_phenomenon_line(case: CaseResult) -> str:
+    """PDF 失败项：现象（单行）。"""
+    blob = _failure_context_text(case)
 
     if re.search(r"\b404\b|Not Found", blob, re.I):
-        lines.extend(
-            [
-                "现象：服务器提示「接口不存在」(HTTP 404)，当前环境无法访问该地址。",
-                "可能影响：依赖该接口的页面或功能不可用。",
-                "建议处理：请研发/运维确认接口是否已上线、路径是否调整，或监控是否指向了错误环境。",
-            ]
-        )
-        return lines
+        return "现象：服务器提示「接口不存在」(HTTP 404)，当前环境无法访问该地址。"
 
     if "401" in blob or "未登录" in blob:
-        lines.extend(
-            [
-                "现象：登录状态失效或未通过鉴权 (HTTP 401)。",
-                "建议处理：检查账号密码、Token 是否过期，或联系运维确认登录服务是否正常。",
-            ]
-        )
-        return lines
+        return "现象：登录状态失效或未通过鉴权 (HTTP 401)。"
 
     if "5002" in blob or "开通权限" in blob:
-        lines.extend(
-            [
-                "现象：账号暂无该功能权限。",
-                "建议处理：在管理后台为测试账号开通对应模块，或监控侧标记为「需权限」跳过。",
-            ]
-        )
-        return lines
+        return "现象：账号暂无该功能权限。"
 
     if "应包含非空 content" in blob or ("content" in blob and "AssertionError" in blob):
-        lines.extend(
-            [
-                "现象：接口有返回，但详情里缺少正文/关键内容字段。",
-                "可能影响：前端详情页空白或展示不完整。",
-                "建议处理：请研发检查该条数据发布、同步或入库是否完整。",
-            ]
-        )
-        return lines
+        return "现象：接口有返回，但详情里缺少正文/关键内容字段。"
 
-    if re.search(r"业务失败\s*code=", blob) or re.search(r"code=\d+", blob):
-        code_m = re.search(r"code[=:]?\s*(\d+)", blob)
-        code_hint = f"（业务码 {code_m.group(1)}）" if code_m else ""
-        lines.extend(
-            [
-                f"现象：接口返回了失败状态{code_hint}，未达到「成功」约定。",
-                "建议处理：请研发根据业务码/错误信息排查服务端逻辑或下游依赖。",
-            ]
-        )
-        return lines
+    if re.search(r"业务失败\s*code=", blob) or re.search(r"业务失败\s*status=", blob, re.I):
+        return "现象：接口返回的业务状态未达到「成功」约定。"
 
     if "HTTP" in blob and re.search(r"HTTP\s*\d{3}", blob):
         status_m = re.search(r"HTTP\s*(\d{3})", blob)
         code = status_m.group(1) if status_m else "异常"
-        lines.extend(
-            [
-                f"现象：HTTP 状态异常 ({code})，请求未按预期完成。",
-                "建议处理：请研发查看网关、服务日志及该时间段是否有发布/故障。",
-            ]
-        )
-        return lines
+        return f"现象：HTTP 状态异常 ({code})，请求未按预期完成。"
+
+    if "ConnectError" in blob or "EOF occurred" in blob:
+        return "现象：网络或 TLS 连接异常，请求未能完成。"
 
     headline = _error_headline(case)
-    lines.append("现象：自动化校验未通过，接口行为与预期不一致。")
-    if headline and len(headline) <= 180:
-        lines.append(f"补充说明：{headline}")
-    lines.append("建议处理：请将本报告（含发生时间）转交研发进一步排查。")
-    return lines
-
-
-def _tech_detail_lines(case: CaseResult, *, max_lines: int = 10) -> list[str]:
-    """精简技术明细，供研发对照（PDF 附录）。"""
-    skip_fragments = (
-        "site-packages",
-        "venv\\",
-        "venv/",
-        "_pytest",
-        "pluggy",
-        "pytest",
-    )
-    picked: list[str] = []
-    for raw in case.detail.replace("\r", "").splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        if any(frag in line for frag in skip_fragments):
-            continue
-        if line.startswith("E   "):
-            line = line[4:].strip()
-        picked.append(line)
-        if len(picked) >= max_lines:
-            break
-    if not picked and case.message.strip():
-        picked.append(re.sub(r"\s+", " ", case.message.replace("\n", " ")).strip())
-    return picked
+    cleaned = re.sub(r"^(AssertionError:\s*)+", "", headline).strip()
+    if cleaned and len(cleaned) <= 200:
+        return f"现象：{cleaned}"
+    return "现象：自动化校验未通过，接口行为与预期不一致。"
 
 
 def _error_headline(case: CaseResult) -> str:
@@ -407,26 +389,6 @@ def _error_headline(case: CaseResult) -> str:
             if line:
                 return line
     return "未知错误"
-
-
-def _error_body_lines(case: CaseResult) -> list[str]:
-    raw = case.detail.replace("\r", "").strip()
-    if not raw:
-        return []
-    lines = [ln.rstrip() for ln in raw.splitlines()]
-    headline = _error_headline(case)
-    if lines and re.sub(r"\s+", " ", lines[0].strip()) == re.sub(r"\s+", " ", headline):
-        lines = lines[1:]
-    cleaned: list[str] = []
-    for line in lines:
-        if not line.strip():
-            if cleaned and cleaned[-1] != "":
-                cleaned.append("")
-            continue
-        cleaned.append(line)
-    while cleaned and cleaned[-1] == "":
-        cleaned.pop()
-    return cleaned[:120]
 
 
 def _pick_font() -> Path | None:
@@ -512,35 +474,39 @@ def generate_pdf(
     else:
         _pdf_write(
             pdf,
-            "以下为失败项说明（面向业务/运维阅读；文末附简短技术摘要供研发参考）。",
+            "以下为失败项（每项仅含：接口路径、业务码、返回信息、现象）。",
             font_path=font_path,
             size=10,
             line_h=6,
         )
         pdf.ln(2)
+        failure_total = len(failures)
         for index, case in enumerate(failures, start=1):
-            pdf.ln(2)
+            if index > 1:
+                pdf.ln(3)
             _pdf_write(
                 pdf,
-                f"【失败项 {index}】",
+                f"失败项 {index}/{failure_total}",
                 font_path=font_path,
                 size=12,
                 line_h=7,
             )
-            for line in _human_failure_brief(case):
+            _pdf_write(
+                pdf,
+                f"接口路径：{endpoint_label(case.test_name)}",
+                font_path=font_path,
+                size=10,
+                line_h=6,
+            )
+            for line in _pdf_business_response_lines(case):
                 _pdf_write(pdf, line, font_path=font_path, size=10, line_h=6)
-            tech_lines = _tech_detail_lines(case)
-            if tech_lines:
-                pdf.ln(1)
-                _pdf_write(
-                    pdf,
-                    "技术摘要（研发参考）：",
-                    font_path=font_path,
-                    size=9,
-                    line_h=5.5,
-                )
-                for line in tech_lines:
-                    _pdf_write(pdf, f"· {line}", font_path=font_path, size=8, line_h=5)
+            _pdf_write(
+                pdf,
+                _pdf_phenomenon_line(case),
+                font_path=font_path,
+                size=10,
+                line_h=6,
+            )
 
     pdf.output(str(pdf_path))
 

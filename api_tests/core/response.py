@@ -442,7 +442,9 @@ def assert_company_notice_detail_success(body: dict[str, Any], *, notice_id: int
     if notice_id is not None:
         assert data.get("id") == notice_id, f"id 不一致: {data.get('id')} != {notice_id}"
     assert str(data.get("infoTitle") or "").strip(), "应包含非空 infoTitle"
-    assert str(data.get("content") or "").strip(), "应包含非空 content"
+    assert str(data.get("content") or "").strip(), (
+        f"应包含非空 content（接口 code={body.get('code')} msg={body.get('msg')}）"
+    )
     return body
 
 

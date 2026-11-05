@@ -33,6 +33,8 @@ class Settings:
     quotes_user_stock_base: str
     rest_api_base: str
     desk_quotes_page_url: str
+    zxt_desktop_news_detail_url: str
+    zxt_desktop_theme_index_url: str
     verify_ssl: bool
 
     @property
@@ -98,6 +100,14 @@ settings = Settings(
     desk_quotes_page_url=_env(
         "DESK_QUOTES_PAGE_URL",
         "https://terminal.sfccn.com/terminal/desk/quotes/",
+    ),
+    zxt_desktop_news_detail_url=_env(
+        "ZXT_DESKTOP_NEWS_DETAIL_URL",
+        "https://zxt.sfccn.com/desktop/news/details/1021804",
+    ),
+    zxt_desktop_theme_index_url=_env(
+        "ZXT_DESKTOP_THEME_INDEX_URL",
+        "https://zxt.sfccn.com/desktop/theme/index",
     ),
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )
