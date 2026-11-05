@@ -37,6 +37,7 @@ _ENDPOINT_BY_TEST: dict[str, str] = {
     "test_desk_procfstatementnew": f"POST {_DESK}/procfstatementnew",
     "test_desk_subnewstockranking": f"POST {_DESK}/subnewstockranking",
     "test_desk_newsharescal": f"POST {_DESK}/newsharescal",
+    "test_desk_search_v2": f"POST {_DESK}/search_v2",
     "test_info_column": "GET /terminal/rest/info/column",
     "test_info_page": "GET /terminal/rest/info/infoPage",
     "test_info_detail": "GET /terminal/rest/info/detail",

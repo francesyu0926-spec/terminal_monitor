@@ -786,3 +786,17 @@ def assert_desk_status_success(body: dict[str, Any]) -> dict[str, Any]:
     status = body.get("status")
     assert status == 200, f"业务失败 status={status} message={body.get('message')}"
     return body
+
+
+def assert_search_v2_success(body: dict[str, Any], *, size: int | None = None) -> dict[str, Any]:
+    body = assert_desk_status_success(body)
+    results = body.get("searchResults")
+    assert isinstance(results, list), "searchResults 应为数组"
+    if size is not None:
+        assert len(results) <= size, f"结果条数 {len(results)} 超过 size {size}"
+    assert results, "searchResults 应为非空数组"
+    first = results[0]
+    assert isinstance(first, dict), "搜索结果条目应为对象"
+    assert str(first.get("code") or "").strip(), "应包含 code"
+    assert str(first.get("name") or "").strip(), "应包含 name"
+    return body

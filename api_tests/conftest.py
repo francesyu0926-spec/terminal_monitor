@@ -131,6 +131,11 @@ def astocksquote_request_payload() -> dict[str, Any]:
 
 
 @pytest.fixture
+def search_v2_request_payload() -> dict[str, Any]:
+    return load_json("search_v2_request.json")
+
+
+@pytest.fixture
 def sector_multiple_sort_request_payload() -> dict[str, Any]:
     return load_json("sector_multiple_sort_request.json")
 

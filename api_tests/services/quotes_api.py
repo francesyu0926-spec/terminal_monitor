@@ -78,5 +78,8 @@ class QuotesApi:
     def newsharescal(self, payload: dict[str, Any]) -> httpx.Response:
         return self._client.post("/newsharescal", json=payload)
 
+    def search_v2(self, payload: dict[str, Any]) -> httpx.Response:
+        return self._client.post("/search_v2", json=payload)
+
 
 DeskQuotesApi = QuotesApi

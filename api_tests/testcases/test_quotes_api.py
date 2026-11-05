@@ -18,6 +18,7 @@ from api_tests.core.response import (
     assert_quote_success,
     assert_newsharescal_success,
     assert_subnew_quote_success,
+    assert_search_v2_success,
     parse_json_response,
 )
 from api_tests.schemas.astocksquote import ASTOCKSQUOTE_RESPONSE_SCHEMA
@@ -34,6 +35,7 @@ from api_tests.schemas.subnewstockranking import SUBNEWSTOCKRANKING_RESPONSE_SCH
 from api_tests.schemas.dayk import DAYK_RESPONSE_SCHEMA, OHLC_ITEM_SCHEMA
 from api_tests.schemas.line5d import LINE5D_RESPONSE_SCHEMA
 from api_tests.schemas.quote import QUOTE_ITEMS_LIST_SCHEMA, QUOTE_RESPONSE_SCHEMA
+from api_tests.schemas.search_v2 import SEARCH_V2_ITEM_SCHEMA
 from api_tests.services.quotes_api import BAR_INTERVALS, BarInterval, QuotesApi
 
 
@@ -227,6 +229,19 @@ def test_desk_intraday_ohlc_series(
 
 
 # --- POST /astocksquote ---
+
+
+@pytest.mark.smoke
+@pytest.mark.regression
+@pytest.mark.quote
+def test_desk_search_v2(
+    quotes_api: QuotesApi,
+    search_v2_request_payload: dict,
+) -> None:
+    resp = quotes_api.search_v2(search_v2_request_payload)
+    size = int(search_v2_request_payload.get("size", 15))
+    body = assert_search_v2_success(parse_json_response(resp), size=size)
+    assert_json_schema(body["searchResults"][0], SEARCH_V2_ITEM_SCHEMA)
 
 
 @pytest.mark.smoke
