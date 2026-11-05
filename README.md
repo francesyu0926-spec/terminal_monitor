@@ -55,8 +55,10 @@ scripts/           # 本地运行脚本
 | `LOGIN_PASSWORD` | 登录密码（加密后） | 空 |
 | `LOGIN_PATH` | 登录路径 | `/login/pwd` |
 | `TOKEN_TTL_SECONDS` | token 本地缓存时长 | `43200`（12 小时） |
-| `TOKEN_HEADER` | token 请求头名称 | `token` |
+| `AUTH_HEADERS` | 鉴权头列表（逗号分隔） | `Secret,Token` |
+| `TOKEN_HEADER` | 单头模式（未设 AUTH_HEADERS 时） | 空 |
 | `TOKEN_PREFIX` | token 前缀（如 `Bearer `） | 空 |
+| `QUOTES_API_BASE` | 行情 API 根路径 | `https://terminal.sfccn.com/terminal/quotes/api` |
 | `API_TIMEOUT` | 超时（秒） | `30` |
 | `API_TOKEN` | 静态 token（可选，跳过登录） | 空 |
 | `HEALTH_PATH` | 健康检查路径（可选） | 空 |
@@ -64,7 +66,7 @@ scripts/           # 本地运行脚本
 ## 鉴权说明
 
 1. 用例会话开始时调用 `POST {API_BASE_URL}{API_PREFIX}/login/pwd`（`application/x-www-form-urlencoded`）。
-2. 从响应 `data.token` 读取 JWT，写入请求头（默认 `token: <jwt>`）。
+2. 从响应 `data.token` 读取 JWT，写入 `AUTH_HEADERS` 中的每个请求头（默认 `Secret`、`Token`）。
 3. **12 小时内**复用同一 token（内存 + `.cache/api_token.json`），过期或收到 `401` 时自动重新登录。
 4. 账号密码请只放在本地 `.env` 或 CI Secrets 中，**不要提交到 Git**。
 
@@ -82,7 +84,21 @@ scripts/           # 本地运行脚本
 - `regression`：回归
 - `health` / `terminal`：按模块筛选
 
-示例：`pytest -m "smoke and terminal"`
+示例：`pytest -m "smoke and quote"`
+
+行情相关用例集中在 **`api_tests/testcases/test_quotes_api.py`**：
+
+| 接口 | 测试函数 | 请求数据 |
+|------|----------|----------|
+| 登录 / Token | `test_login_*` | `.env` |
+| `POST /quote` | `test_quote_single_symbol` | `data/quote_request.json` |
+| `POST /catesorting` | `test_catesorting_paged_list` | `data/catesorting_request.json` |
+| `POST /dayk` | `test_dayk_ohlc_series` | `data/dayk_request.json` |
+| `POST /weekk` | `test_weekk_ohlc_series` | `data/weekk_request.json` |
+| `POST /monthk` | `test_monthk_ohlc_series` | `data/monthk_request.json` |
+| `POST /yeark` | `test_yeark_ohlc_series` | `data/yeark_request.json` |
+
+运行全部行情用例：`pytest api_tests/testcases/test_quotes_api.py -v`
 
 ## CI
 

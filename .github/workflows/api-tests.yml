@@ -30,7 +30,7 @@ jobs:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: |
           mkdir -p reports
-          pytest -m "smoke and auth" --html=reports/report.html --self-contained-html
+          pytest -m "smoke and (auth or quote)" --html=reports/report.html --self-contained-html
         continue-on-error: true
 
       - name: Upload HTML report

@@ -27,6 +27,8 @@ class Settings:
     token_ttl_seconds: int
     token_header: str
     token_prefix: str
+    auth_header_names: tuple[str, ...]
+    quotes_api_base: str
     verify_ssl: bool
 
     @property
@@ -47,6 +49,14 @@ def _env_bool(name: str, default: bool = True) -> bool:
     return raw in ("1", "true", "yes", "on")
 
 
+def _parse_auth_header_names() -> tuple[str, ...]:
+    combined = _env("AUTH_HEADERS", "Secret,Token")
+    if combined:
+        return tuple(part.strip() for part in combined.split(",") if part.strip())
+    single = _env("TOKEN_HEADER", "")
+    return (single,) if single else ()
+
+
 settings = Settings(
     base_url=_env("API_BASE_URL", "https://terminal.sfccn.com"),
     api_prefix=_env("API_PREFIX", "/terminal/zxt-web"),
@@ -57,7 +67,9 @@ settings = Settings(
     login_password=_env("LOGIN_PASSWORD", ""),
     login_path=_env("LOGIN_PATH", "/login/pwd"),
     token_ttl_seconds=int(_env("TOKEN_TTL_SECONDS", str(12 * 3600))),
-    token_header=_env("TOKEN_HEADER", "token"),
+    token_header=_env("TOKEN_HEADER", ""),
     token_prefix=_env("TOKEN_PREFIX", ""),
+    auth_header_names=_parse_auth_header_names(),
+    quotes_api_base=_env("QUOTES_API_BASE", "https://terminal.sfccn.com/terminal/quotes/api"),
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )

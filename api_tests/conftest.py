@@ -12,6 +12,7 @@ from api_tests.auth.login import LoginError
 from api_tests.auth.token_provider import TokenProvider
 from api_tests.config.settings import settings
 from api_tests.core.http_client import ApiClient
+from api_tests.services.quotes_api import QuotesApi
 from api_tests.services.terminal_api import TerminalApi
 
 _DATA_DIR = Path(__file__).parent / "data"
@@ -32,6 +33,48 @@ def api_client(token_provider: TokenProvider) -> Generator[ApiClient, None, None
 @pytest.fixture(scope="session")
 def terminal_api(api_client: ApiClient) -> TerminalApi:
     return TerminalApi(api_client)
+
+
+@pytest.fixture(scope="session")
+def quotes_client(token_provider: TokenProvider) -> Generator[ApiClient, None, None]:
+    client = ApiClient(base_url=settings.quotes_api_base, token_provider=token_provider)
+    yield client
+    client.close()
+
+
+@pytest.fixture(scope="session")
+def quotes_api(quotes_client: ApiClient) -> QuotesApi:
+    return QuotesApi(quotes_client)
+
+
+@pytest.fixture
+def quote_request_payload() -> dict[str, Any]:
+    return load_json("quote_request.json")
+
+
+@pytest.fixture
+def catesorting_request_payload() -> dict[str, Any]:
+    return load_json("catesorting_request.json")
+
+
+@pytest.fixture
+def dayk_request_payload() -> dict[str, Any]:
+    return load_json("dayk_request.json")
+
+
+@pytest.fixture
+def weekk_request_payload() -> dict[str, Any]:
+    return load_json("weekk_request.json")
+
+
+@pytest.fixture
+def monthk_request_payload() -> dict[str, Any]:
+    return load_json("monthk_request.json")
+
+
+@pytest.fixture
+def yeark_request_payload() -> dict[str, Any]:
+    return load_json("yeark_request.json")
 
 
 @pytest.fixture(scope="session")

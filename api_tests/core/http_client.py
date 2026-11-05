@@ -6,6 +6,8 @@ import httpx
 
 from api_tests.auth.token_provider import TokenProvider
 from api_tests.config.settings import settings
+from api_tests.core.auth_headers import auth_headers_for_token
+from api_tests.core.response import response_indicates_unauthorized
 from api_tests.core.transport import httpx_verify
 
 
@@ -43,8 +45,7 @@ class ApiClient:
         if self._token_provider is None and not settings.api_token:
             return {}
         token = self._token_provider.get_token() if self._token_provider else settings.api_token
-        value = f"{settings.token_prefix}{token}"
-        return {settings.token_header: value}
+        return auth_headers_for_token(token)
 
     def request(
         self,
@@ -64,7 +65,7 @@ class ApiClient:
         resp = self._client.request(method, url, params=params, json=json, headers=merged)
         if (
             retry_on_unauthorized
-            and resp.status_code == 401
+            and response_indicates_unauthorized(resp)
             and self._token_provider is not None
             and not settings.api_token
         ):

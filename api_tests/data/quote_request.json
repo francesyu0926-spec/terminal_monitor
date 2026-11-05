@@ -1,0 +1,4 @@
+{
+  "code": "600000.SH",
+  "fields": ["code", "name", "preClosePrice"]
+}

@@ -1,3 +1,9 @@
+from api_tests.schemas.quote import QUOTE_ITEMS_LIST_SCHEMA, QUOTE_RESPONSE_SCHEMA
 from api_tests.schemas.terminal import TERMINAL_ITEM_SCHEMA, TERMINAL_LIST_SCHEMA
 
-__all__ = ["TERMINAL_ITEM_SCHEMA", "TERMINAL_LIST_SCHEMA"]
+__all__ = [
+    "QUOTE_ITEMS_LIST_SCHEMA",
+    "QUOTE_RESPONSE_SCHEMA",
+    "TERMINAL_ITEM_SCHEMA",
+    "TERMINAL_LIST_SCHEMA",
+]
