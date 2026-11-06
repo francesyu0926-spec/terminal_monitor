@@ -6,8 +6,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from api_tests.config.monitor_policy import load_monitor_policy
+
 _ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_ROOT / ".env")
+_MONITOR_POLICY = load_monitor_policy()
 
 
 def _env(name: str, default: str = "") -> str:
@@ -118,9 +121,6 @@ settings = Settings(
     quotes_api_call_timezone=_env("QUOTES_API_CALL_TIMEZONE", "Asia/Shanghai"),
     quotes_api_call_start=_env("QUOTES_API_CALL_START", "09:30"),
     quotes_api_call_end=_env("QUOTES_API_CALL_END", "23:39"),
-    wework_notify_failure_only_after=_env(
-        "WEWORK_NOTIFY_FAILURE_ONLY_AFTER",
-        "2026-11-07 00:00:00",
-    ),
+    wework_notify_failure_only_after=_MONITOR_POLICY.wework_notify_failure_only_after,
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )

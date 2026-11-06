@@ -14,6 +14,7 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 $items = @(
     "api_tests",
+    "config",
     "scripts",
     "requirements.txt",
     "pytest.ini",

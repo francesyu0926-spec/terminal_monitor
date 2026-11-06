@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r re
 
 # 敏感配置运行时注入：docker compose env_file .env（WEWORK_WEBHOOK_URL、LOGIN_CODE 等）
 COPY api_tests ./api_tests
+COPY config ./config
 COPY pytest.ini .
 COPY scripts ./scripts
 
