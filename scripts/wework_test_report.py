@@ -43,7 +43,7 @@ _ENDPOINT_BY_TEST: dict[str, str] = {
     "test_info_detail": "GET /terminal/rest/info/detail",
     "test_hot_info": "GET /terminal/rest/hot/info",
     "test_monitor_scheme_view_list": "GET /terminal/rest/monitor/scheme/view/list",
-    "test_monitor_scheme_view_detail": "GET /terminal/rest/monitor/scheme/view/detail?schemeId=1018653",
+    "test_monitor_scheme_view_detail": "GET /terminal/rest/monitor/scheme/view/detail?schemeId={id}",
     "test_monitor_group_search": "POST /terminal/rest/monitor/group/search",
     "test_param_addr": "GET /terminal/rest/param/addr",
     "test_advertise_classify_list": "GET /terminal/rest/user/advertise/classify/list",

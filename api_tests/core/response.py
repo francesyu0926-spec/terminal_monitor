@@ -591,14 +591,20 @@ def assert_monitor_group_search_success(
     body: dict[str, Any],
     *,
     page_size: int | None = None,
+    allow_empty: bool = False,
 ) -> dict[str, Any]:
     body = assert_rest_success(body)
     data = body.get("data")
-    assert isinstance(data, list) and data, "data 应为非空数组"
+    assert isinstance(data, list), "data 应为数组"
     if page_size is not None:
         assert len(data) <= page_size, f"条数 {len(data)} 超过 pageSize {page_size}"
     total = body.get("total")
-    assert isinstance(total, int) and total > 0, "total 应为正整数"
+    assert isinstance(total, int) and total >= 0, "total 应为非负整数"
+    if not data:
+        assert allow_empty, "data 应为非空数组"
+        assert total == 0, "空结果时 total 应为 0"
+        return body
+    assert total > 0, "有数据时 total 应为正整数"
     first = data[0]
     assert isinstance(first, dict), "舆情条目应为对象"
     assert first.get("id") is not None, "应包含 id"
