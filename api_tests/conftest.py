@@ -12,6 +12,7 @@ from api_tests.auth.login import LoginError
 from api_tests.auth.token_provider import TokenProvider
 from api_tests.config.settings import settings
 from api_tests.core.http_client import ApiClient
+from api_tests.core.quotes_call_window import quotes_api_call_allowed, quotes_api_call_skip_reason
 from api_tests.services.quotes_api import QuotesApi
 from api_tests.services.rest_api import RestApi
 from api_tests.services.terminal_api import TerminalApi
@@ -19,6 +20,15 @@ from api_tests.services.user_stock_api import UserStockApi
 from api_tests.services.zxt_web_api import ZxtWebApi
 
 _DATA_DIR = Path(__file__).parent / "data"
+
+
+@pytest.fixture(autouse=True)
+def _quotes_api_call_window(request: pytest.FixtureRequest) -> None:
+    """`/terminal/quotes/api` 与 desk 行情 API（@quote）仅在配置时段内执行。"""
+    if request.node.get_closest_marker("quote") is None:
+        return
+    if not quotes_api_call_allowed():
+        pytest.skip(quotes_api_call_skip_reason())
 
 
 @pytest.fixture(scope="session")
