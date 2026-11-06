@@ -6,11 +6,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from api_tests.config.monitor_policy import load_monitor_policy
-
 _ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_ROOT / ".env")
-_MONITOR_POLICY = load_monitor_policy()
 
 
 def _env(name: str, default: str = "") -> str:
@@ -38,11 +35,6 @@ class Settings:
     desk_quotes_page_url: str
     zxt_desktop_news_detail_url: str
     zxt_desktop_theme_index_url: str
-    quotes_api_call_window_enabled: bool
-    quotes_api_call_timezone: str
-    quotes_api_call_start: str
-    quotes_api_call_end: str
-    wework_notify_failure_only_after: str
     verify_ssl: bool
 
     @property
@@ -117,10 +109,5 @@ settings = Settings(
         "ZXT_DESKTOP_THEME_INDEX_URL",
         "https://zxt.sfccn.com/desktop/theme/index",
     ),
-    quotes_api_call_window_enabled=_env_bool("QUOTES_API_CALL_WINDOW_ENABLED", True),
-    quotes_api_call_timezone=_env("QUOTES_API_CALL_TIMEZONE", "Asia/Shanghai"),
-    quotes_api_call_start=_env("QUOTES_API_CALL_START", "09:30"),
-    quotes_api_call_end=_env("QUOTES_API_CALL_END", "23:39"),
-    wework_notify_failure_only_after=_MONITOR_POLICY.wework_notify_failure_only_after,
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )

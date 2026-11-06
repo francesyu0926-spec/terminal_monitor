@@ -1,3 +1,7 @@
 {
-  "wework_notify_failure_only_after": "2026-11-07 00:00:00"
+  "wework_notify_failure_only_after": "2026-11-07 00:00:00",
+  "quotes_api_call_window_enabled": true,
+  "quotes_api_call_timezone": "Asia/Shanghai",
+  "quotes_api_call_start": "09:30",
+  "quotes_api_call_end": "23:39"
 }

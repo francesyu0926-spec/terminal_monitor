@@ -1,21 +1,10 @@
-"""`/terminal/quotes/api` 与 desk 行情 API 的可调用时段（默认 9:30–23:39，Asia/Shanghai）。"""
+"""`/terminal/quotes/api` 与 desk 行情 API 的可调用时段（见 config/monitor_policy.json）。"""
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta, timezone
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import datetime, time
 
-from api_tests.config.settings import settings
-
-
-def _monitor_timezone() -> timezone | ZoneInfo:
-    name = settings.quotes_api_call_timezone
-    try:
-        return ZoneInfo(name)
-    except ZoneInfoNotFoundError:
-        if name in ("Asia/Shanghai", "PRC", "CST-8"):
-            return timezone(timedelta(hours=8), name="Asia/Shanghai")
-        raise
+from api_tests.config.monitor_policy import load_monitor_policy, monitor_timezone
 
 
 def _parse_hhmm(value: str) -> time:
@@ -27,19 +16,21 @@ def _parse_hhmm(value: str) -> time:
 
 
 def quotes_api_call_allowed(*, at: datetime | None = None) -> bool:
-    if not settings.quotes_api_call_window_enabled:
+    policy = load_monitor_policy()
+    if not policy.quotes_api_call_window_enabled:
         return True
-    tz = _monitor_timezone()
+    tz = monitor_timezone(policy)
     moment = at.astimezone(tz) if at is not None else datetime.now(tz)
-    start = _parse_hhmm(settings.quotes_api_call_start)
-    end = _parse_hhmm(settings.quotes_api_call_end)
+    start = _parse_hhmm(policy.quotes_api_call_start)
+    end = _parse_hhmm(policy.quotes_api_call_end)
     current = moment.time().replace(second=0, microsecond=0)
     end_inclusive = time(end.hour, end.minute, 59)
     return start <= current <= end_inclusive
 
 
 def quotes_api_call_skip_reason() -> str:
+    policy = load_monitor_policy()
     return (
-        f"quotes/api 相关用例仅在 {settings.quotes_api_call_start}–{settings.quotes_api_call_end} "
-        f"（{settings.quotes_api_call_timezone}）执行，当前时段跳过"
+        f"quotes/api 相关用例仅在 {policy.quotes_api_call_start}–{policy.quotes_api_call_end} "
+        f"（{policy.quotes_api_call_timezone}）执行，当前时段跳过"
     )
