@@ -13,6 +13,8 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 
+from api_tests.core.wecom_notify_policy import should_notify_wecom
+
 # 测试函数 -> 接口展示名（与参考图「失败接口」一致：METHOD + 完整路径）
 _DESK = "/terminal/desk/quotes/api"
 _ENDPOINT_BY_TEST: dict[str, str] = {
@@ -533,6 +535,13 @@ def main() -> int:
         return 1
 
     summary = parse_junit(args.junit)
+
+    if not should_notify_wecom(run_ok=summary.ok):
+        print(
+            "巡检通过；已到达仅失败推送企微策略起始时间，跳过企业微信通知",
+            file=sys.stderr,
+        )
+        return 0
 
     pdf_path: Path | None = None
     pdf_error: str | None = None

@@ -39,6 +39,7 @@ class Settings:
     quotes_api_call_timezone: str
     quotes_api_call_start: str
     quotes_api_call_end: str
+    wework_notify_failure_only_after: str
     verify_ssl: bool
 
     @property
@@ -117,5 +118,9 @@ settings = Settings(
     quotes_api_call_timezone=_env("QUOTES_API_CALL_TIMEZONE", "Asia/Shanghai"),
     quotes_api_call_start=_env("QUOTES_API_CALL_START", "09:30"),
     quotes_api_call_end=_env("QUOTES_API_CALL_END", "23:39"),
+    wework_notify_failure_only_after=_env(
+        "WEWORK_NOTIFY_FAILURE_ONLY_AFTER",
+        "2026-11-07 00:00:00",
+    ),
     verify_ssl=_env_bool("VERIFY_SSL", True),
 )
